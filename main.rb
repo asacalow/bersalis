@@ -12,15 +12,15 @@ class Document < Nokogiri::XML::SAX::Document
   
   def initialize(receiver)
     self.receiver = receiver
-    @doc = Nokogiri::XML::Document.new
   end
   
   def start_element_namespace(name, attrs = [], prefix = nil, uri = nil, ns = [])
     return if name == 'stream' # this tag only gets closed when the connection is closed so we want to ignore this for now
     # TODO: Create a Stream object which captures some of this stuff.
     
+    doc = stanza_building_in_progress? ? @current.document : Nokogiri::XML::Document.new
     # create a Nokogiri node from what we know…
-    node = Nokogiri::XML::Node.new(name, @doc)
+    node = Nokogiri::XML::Node.new(name, doc)
     attrs.each {|a| node[a.localname] = a.value}
     ns.each do |ns|
       prefix, uri = ns
@@ -43,7 +43,15 @@ class Document < Nokogiri::XML::SAX::Document
   private
   
   def process(node)
+    # we set this so we can use xpath across the whole node.
+    # just using the node's xpath function doesn't give us the node itself!
+    node.document.root = node
+    
     self.receiver.process(node)
+  end
+  
+  def stanza_building_in_progress?
+    !!@current
   end
 end
 
@@ -51,13 +59,13 @@ class Connection < EventMachine::Connection
   attr_accessor :client
   
   def initialize(client)
-    self.client = client
+    self.client = client.new(self)
   end
   
   def post_init
     # send an 'open stream' tag
-    @parser = Nokogiri::XML::SAX::PushParser.new(Document.new(self))
-    send "<stream:stream xmlns=\"jabber:client\" xmlns:stream=\"http://etherx.jabber.org/streams\" version=\"1.0\">"
+    @parser = Nokogiri::XML::SAX::PushParser.new(Document.new(self.client))
+    send_data "<stream:stream xmlns=\"jabber:client\" xmlns:stream=\"http://etherx.jabber.org/streams\" version=\"1.0\">"
   end
   
   def receive_data(data)
@@ -68,26 +76,49 @@ class Connection < EventMachine::Connection
     # close the stream
     send_data "</stream:stream>"
   end
-  
-  # this gets called back from the parser when we've got a Nokogiri Node to work with
-  def process(node)
-    stanza = Stanza.new(node)
-    puts stanza.to_xml
-  end
-  
-  def send(data)
-    send_data(data)
-  end
 end
 
 class Client
   HANDLERS = {}
   
+  attr_accessor :connection
+  
   def self.run
-    EM.connect '127.0.0.1', 5222, Connection, Client.new
+    EM.connect '127.0.0.1', 5222, Connection, self
+  end
+  
+  def self.handle(klass, method)
+    HANDLERS[klass] = method
+  end
+  
+  def initialize(connection)
+    self.connection = connection
+  end
+  
+  # this gets called back from the parser when we've got a Nokogiri Node to work with
+  def process(node)
+    klass = nil
+    # search through the dictionary of known stanzas for a handler
+    KNOWN_STANZAS.each_pair do |kls, nns|
+      # if we get a hit for the registered path/namespace pairing then we have a recognisable class
+      klass = kls if !node.document.at(nns[:path], nns[:namespaces]).nil?
+    end
+    return if klass.nil? # return if the stanza hasn't been recognised
+    
+    # now, if we know of a handler for the class, we can do something with it
+    method = HANDLERS[klass]
+    send(method, klass.new(node)) if method
+  end
+end
+
+class BasicClient < Client
+  handle Features, :do_stuff
+  
+  def do_stuff(features)
+    puts "Yay we're here!"
   end
 end
 
 EM.run do
-  Client.run
+  BasicClient.run
 end

@@ -1,6 +1,8 @@
 # the abstract Stanza classes
 # a Stanza is basically a wrapper around a Nokogiri node
 
+KNOWN_STANZAS = {}
+
 class ReadOnlyStanza
   attr_accessor :node
   
@@ -11,11 +13,16 @@ class ReadOnlyStanza
   def to_xml
     self.node.to_xml
   end
+  
+  def self.register(path, namespaces={})
+    KNOWN_STANZAS[self] = {:path => path, :namespaces => namespaces}
+  end
 end
 
 class Stanza < ReadOnlyStanza
   def self.create
     node = Nokogiri::XML::Node.new(self::NODE_NAME, Nokogiri::XML::Document.new)
+    node.document.root = node # we do this to make the whole node searchable via xpath
     self.setup(node)
     return self.new(node)
   end
@@ -31,6 +38,10 @@ class Stanza < ReadOnlyStanza
   def self.setup(node)
     node
   end
+end
+
+class Features < ReadOnlyStanza
+  register '/features'
 end
 
 class AnonymousAuth < Stanza
