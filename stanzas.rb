@@ -44,21 +44,18 @@ class Features < ReadOnlyStanza
   register '/features'
 end
 
+class AuthenticationSuccessful < ReadOnlyStanza
+  register '/auth:success', 'auth' => 'urn:ietf:params:xml:ns:xmpp-sasl'
+end
+
 class AnonymousAuth < Stanza
   NODE_NAME = 'auth'
-  SASL_NS = 'urn:ietf:params:xml:ns:xmpp-sasl'
 
   def self.setup(node)
     node = super(node)
-    node.add_namespace(nil, SASL_NS)
+    node.add_namespace(nil, 'urn:ietf:params:xml:ns:xmpp-sasl')
     node['mechanism'] = 'ANONYMOUS'
     node
-  end
-
-  private
-
-  def b64(str)
-    [str].pack('m').gsub(/\s/,'')
   end
 end
 

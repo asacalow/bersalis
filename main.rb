@@ -32,8 +32,13 @@ class Document < Nokogiri::XML::SAX::Document
   
   def end_element_namespace(name, attrs = [], prefix = nil, uri = nil, ns = [])
     return if name == 'stream' # TODO: Handle this (see above!)
-    process(@current) unless (@current.parent) # if there's a parent node we're not done parsing here
-    @current = @current.parent # and back up the tree
+    
+    # if there's a parent node we're not done parsing here so return
+    if @current.parent
+      @current = @current.parent
+      return
+    end
+    process(@current)
   end
   
   def characters(chars = '')
@@ -46,6 +51,7 @@ class Document < Nokogiri::XML::SAX::Document
     # we set this so we can use xpath across the whole node.
     # just using the node's xpath function doesn't give us the node itself!
     node.document.root = node
+    @current = nil # reset 
     
     self.receiver.process(node)
   end
@@ -109,13 +115,25 @@ class Client
     method = HANDLERS[klass]
     send(method, klass.new(node)) if method
   end
+  
+  def write(stanza)
+    self.connection.send_data(stanza.to_xml)
+  end
 end
 
 class BasicClient < Client
-  handle Features, :do_stuff
+  handle Features,                  :stream_started
+  handle AuthenticationSuccessful,  :logged_in
   
-  def do_stuff(features)
-    puts "Yay we're here!"
+  def stream_started(features)
+    auth = AnonymousAuth.create
+    write auth
+  end
+  
+  def logged_in(auth_success)
+    puts "Hurray!"
+    pres = Presence.create
+    write pres
   end
 end
 
