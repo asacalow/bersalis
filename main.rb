@@ -16,6 +16,7 @@ class BasicClient < Client
   
   def ready_to_authenticate(features)
     auth = PlainAuth.create
+    auth.set_credentials(:jid => 'jimjam@alakazam.local', :username => 'jimjam', :password => 'password')
     write auth
   end
   

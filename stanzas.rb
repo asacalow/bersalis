@@ -105,13 +105,16 @@ class PlainAuth < Auth
     node = super(node)
     node.add_namespace(nil, 'urn:ietf:params:xml:ns:xmpp-sasl')
     node['mechanism'] = 'PLAIN'
-    node.content = b64("jimjam@alakazam.local\x00jimjam\x00password")
     node
+  end
+  
+  def set_credentials(opts)
+    self.node.content = b64("#{opts[:jid]}\x00#{opts[:username]}\x00#{opts[:password]}")
   end
   
   private
   
-  def self.b64(str)
+  def b64(str)
     [str].pack('m').gsub(/\s/,'')
   end
 end

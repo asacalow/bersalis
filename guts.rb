@@ -12,7 +12,9 @@ class Document < Nokogiri::XML::SAX::Document
     return if name == 'stream' # this tag only gets closed when the connection is closed so we want to ignore this for now
     # TODO: Create a Stream object which captures some of this stuff.
     
+    # if we're already building a stanza then assign the found node to the same xml document as it
     doc = stanza_building_in_progress? ? @current.document : Nokogiri::XML::Document.new
+    
     # create a Nokogiri node from what we know…
     node = Nokogiri::XML::Node.new(name, doc)
     attrs.each {|a| node[a.localname] = a.value}
@@ -32,6 +34,8 @@ class Document < Nokogiri::XML::SAX::Document
       @current = @current.parent
       return
     end
+    
+    # otherwise process the node ready for handling
     process(@current)
   end
   
@@ -45,7 +49,7 @@ class Document < Nokogiri::XML::SAX::Document
     # we set this so we can use xpath across the whole node.
     # just using the node's xpath function doesn't give us the node itself!
     node.document.root = node
-    @current = nil # reset 
+    @current = nil # reset our pointer
     
     self.receiver.process(node)
   end
@@ -137,12 +141,15 @@ class Client
     # now, if we know of a handler for the class, we can do something with it
     possibles = HANDLERS.select{|h| klass == h[:class]}
     return if possibles.empty? # no handler
+    
+    # iterate over possible handler matches and throw out any where the filter doesn't match
     opts = nil
-    possibles.each do |options| 
-      next if options[:filter] && !node.document.at(options[:filter], options[:filter_ns] || {}) # pass over if we have a filter but the node doesn't match it
+    possibles.each do |options|
+      next if options[:filter] && !node.document.at(options[:filter], options[:filter_ns] || {})
       opts = options
     end
     return if opts.nil? # no filter matched
+    
     send(opts[:method], klass.new(node))
   end
   
