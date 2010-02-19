@@ -17,7 +17,7 @@ module Bersalis
       doc = stanza_building_in_progress? ? @current.document : Nokogiri::XML::Document.new
     
       # create a Nokogiri node from what we know…
-      node = Nokogiri::XML::Node.new(name, doc)
+      node = Node.new(name, doc)
       attrs.each {|a| node[a.localname] = a.value}
       ns.each do |ns|
         prefix, uri = ns
@@ -47,9 +47,8 @@ module Bersalis
     private
   
     def process(node)
-      # we set this so we can use xpath across the whole node.
-      # just using the node's xpath function doesn't give us the node itself!
-      node.document.root = node
+      # we set this so we can use xpath across the whole node – see the method
+      node.finish_up
       @current = nil # reset our pointer
     
       self.receiver.process(node)
@@ -123,32 +122,42 @@ module Bersalis
   
     # this gets called back from the parser when we've got a Nokogiri Node to work with
     def process(node)
-      klass = nil
-      # search through the dictionary of known stanzas for a handler
-      KNOWN_STANZAS.each_pair do |kls, nns|
-        # if we get a hit for the registered path/namespace pairing then we have a recognisable class
-        klass = kls if !node.document.at(nns[:path], nns[:namespaces]).nil?
-      end
+      klass = stanza_class_for(node)
       return if klass.nil? # return if the stanza hasn't been recognised
-    
+      
       # now, if we know of a handler for the class, we can do something with it
-      possibles = HANDLERS.select{|h| klass == h[:class]}
-      return if possibles.empty? # no handler
-    
-      # iterate over possible handler matches and throw out any where the filter doesn't match
-      opts = nil
-      possibles.each do |options|
-        next if options[:filter] && !node.document.at(options[:filter], options[:filter_ns] || {})
-        opts = options
-      end
-      return if opts.nil? # no filter matched
-    
-      send(opts[:method], klass.new(node))
+      handler = handler_for(klass)
+      return if handler.nil? # no handler matched
+      
+      send(handler[:method], klass.new(node))
     end
   
     def write(stanza)
-      Client.debug("OUT: #{stanza.to_xml}")
-      self.connection.send_data(stanza.to_xml)
+      xml = stanza.to_xml
+      Bersalis.debug("OUT: #{xml}")
+      self.connection.send_data(xml)
+    end
+    
+    private
+    
+    def stanza_class_for(node)
+      klass = nil
+      KNOWN_STANZAS.each_pair do |kls, nns|
+        # if we get a hit for the registered path/namespace pairing then we have a recognisable class
+        klass = kls if !node.at(nns[:path], nns[:namespaces]).nil?
+      end
+      klass
+    end
+    
+    def handler_for(klass)
+      possibles = HANDLERS.select{|h| klass == h[:class]}
+      # now filter 'em
+      opts = nil
+      possibles.each do |options|
+        next if options[:filter] && !node.at(options[:filter], options[:filter_ns] || {})
+        opts = options
+      end
+      opts
     end
   end
 end

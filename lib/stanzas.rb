@@ -17,7 +17,7 @@ module Bersalis
     end
     
     def at(path, namespaces={})
-      self.node.document.at(path, namespaces)
+      self.node.at(path, namespaces)
     end
 
     def to_xml
@@ -48,13 +48,13 @@ module Bersalis
       define_method("#{name}") do
         path = opts[:path]
         namespaces = opts[:namespaces] || {}
-        return self.node.document.at(path, namespaces).content
+        return self.at(path, namespaces).content
       end
     
       define_method("#{name}=") do |value|
         path = opts[:path]
         namespaces = opts[:namespaces] || {}
-        self.node.document.at(path, namespaces).content = value
+        self.at(path, namespaces).content = value
       end
     end
   
@@ -64,8 +64,8 @@ module Bersalis
 
   class Stanza < ReadOnlyStanza
     def self.create(attributes={})
-      node = Nokogiri::XML::Node.new(self::NODE_NAME, Nokogiri::XML::Document.new)
-      node.document.root = node # we do this to make the whole node searchable via xpath
+      node = Node.new(self::NODE_NAME)
+      node.finish_up
       self.setup(node)
       return self.new(node, attributes)
     end
@@ -80,6 +80,21 @@ module Bersalis
     #   end
     def self.setup(node)
       node
+    end
+  end
+  
+  class Node < Nokogiri::XML::Node
+    def self.new(name, doc=Nokogiri::XML::Document.new)
+      super(name, doc)
+    end
+    
+    # we do this so we can use the at method below to search the entire node
+    def finish_up
+      self.document.root = self
+    end
+    
+    def at(*args)
+      self.document.at(*args)
     end
   end
 end
