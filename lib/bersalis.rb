@@ -4,4 +4,8 @@ end
 
 require 'guts'
 require 'stanzas'
-require 'clients'
+require 'stanzas/basic'
+require 'stanzas/auth'
+require 'stanzas/session'
+require 'stanzas/roster'
+require 'basics'

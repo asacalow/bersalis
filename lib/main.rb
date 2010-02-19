@@ -1,6 +1,4 @@
 require 'rubygems'
-require 'eventmachine'
-
 require 'bersalis'
 
 trap(:SIGINT)   { EM.stop }

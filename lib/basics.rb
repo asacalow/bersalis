@@ -15,7 +15,7 @@ module Bersalis
     end
 
     def authentication_successful(auth_success)
-      self.start # we start a new xml document now
+      self.restart # now that we're authenticated we start a new stream
     end
 
     def ready_to_bind(features)

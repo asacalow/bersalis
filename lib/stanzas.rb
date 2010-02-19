@@ -15,6 +15,10 @@ module Bersalis
         self.send("#{attribute}=", value)
       end
     end
+    
+    def at(path, namespaces={})
+      self.node.document.at(path, namespaces)
+    end
 
     def to_xml
       self.node.to_xml
@@ -29,14 +33,14 @@ module Bersalis
         path = opts[:path], opts[:namespaces]
         namespaces = opts[:namespaces] || {}
         attribute_name = (opts[:attribute_name] || name).to_s
-        return self.node.document.at(path, namespaces)[attribute_name]
+        return self.at(path, namespaces)[attribute_name]
       end
     
       define_method("#{name}=") do |value|
         path = opts[:path]
         namespaces = opts[:namespaces] || {}
         attribute_name = (opts[:attribute_name] || name).to_s
-        self.node.document.at(path, namespaces)[attribute_name] = value
+        self.at(path, namespaces)[attribute_name] = value
       end
     end
   
@@ -76,95 +80,6 @@ module Bersalis
     #   end
     def self.setup(node)
       node
-    end
-  end
-
-  class Features < ReadOnlyStanza
-    register '/features'
-    # register '/stream:features', 'stream' => 'http://etherx.jabber.org/streams'
-  end
-
-  class AuthenticationSuccessful < ReadOnlyStanza
-    register '/auth:success', 'auth' => 'urn:ietf:params:xml:ns:xmpp-sasl'
-  end
-
-  class Auth < Stanza
-    NODE_NAME = 'auth'
-  end
-
-  class AnonymousAuth < Auth
-    def self.setup(node)
-      node = super(node)
-      node.add_namespace(nil, 'urn:ietf:params:xml:ns:xmpp-sasl')
-      node['mechanism'] = 'ANONYMOUS'
-      node
-    end
-  end
-
-  class PlainAuth < Auth
-    def self.setup(node)
-      node = super(node)
-      node.add_namespace(nil, 'urn:ietf:params:xml:ns:xmpp-sasl')
-      node['mechanism'] = 'PLAIN'
-      node
-    end
-  
-    def set_credentials(opts)
-      self.node.content = b64("#{opts[:jid]}\x00#{opts[:username]}\x00#{opts[:password]}")
-    end
-  
-    private
-  
-    def b64(str)
-      [str].pack('m').gsub(/\s/,'')
-    end
-  end
-
-  class Presence < Stanza
-    NODE_NAME = 'presence'
-  
-    register '/presence'
-  end
-
-  class Iq < Stanza
-    NODE_NAME = 'iq'
-  
-    attribute :type,  :path => '/iq'
-    attribute :id,    :path => '/iq'
-  end
-
-  class Bind < Iq
-    register '/iq/bind:bind', 'bind' => 'urn:ietf:params:xml:ns:xmpp-bind'
-    content :jid,       :path => '//bind:jid',      :namespaces => {'bind' => 'urn:ietf:params:xml:ns:xmpp-bind'}
-    content :resource,  :path => '//bind:resource', :namespaces => {'bind' => 'urn:ietf:params:xml:ns:xmpp-bind'}
-  
-    def self.setup(node)
-      node = super(node)
-      bind = node << Nokogiri::XML::Node.new('bind', node.document)
-      bind.add_namespace(nil, 'urn:ietf:params:xml:ns:xmpp-bind')
-      bind << Nokogiri::XML::Node.new('jid', node.document)
-      bind << Nokogiri::XML::Node.new('resource', node.document)
-      node
-    end
-  end
-
-  class Session < Iq
-    register '/iq/session:session', 'session' => 'urn:ietf:params:xml:ns:xmpp-session'
-  
-    def self.setup(node)
-      node = super(node)
-      session = node << Nokogiri::XML::Node.new('session', node.document)
-      session.add_namespace(nil, 'urn:ietf:params:xml:ns:xmpp-session')
-      node
-    end
-  end
-
-  class RosterGet < Iq
-    def self.setup(node)
-      node = super(node)
-      query = node << Nokogiri::XML::Node.new('query', node.document)
-      query.add_namespace(nil, 'jabber:iq:get')
-      query
     end
   end
 end

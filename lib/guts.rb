@@ -1,4 +1,5 @@
 require 'nokogiri'
+require 'eventmachine'
 require 'logger'
 
 module Bersalis
@@ -61,25 +62,23 @@ module Bersalis
   end
 
   class Connection < EventMachine::Connection
-    attr_accessor :client
+    attr_accessor :client, :parser
   
     def initialize(client)
       self.client = client.new(self)
     end
   
     def post_init
-      start
+      self.client.start
     end
-  
+    
     def start
-      # send an 'open stream' tag
-      @parser = Nokogiri::XML::SAX::PushParser.new(Document.new(self.client))
-      send_data Client::START_STREAM
+      self.parser = Nokogiri::XML::SAX::PushParser.new(Document.new(self.client))
     end
   
     def receive_data(data)
       Client.debug("IN: #{data}")
-      @parser << data
+      self.parser << data
     end
   
     def unbind
@@ -127,6 +126,12 @@ module Bersalis
   
     def start
       self.connection.start
+      self.connection.send_data(Client::START_STREAM)
+    end
+    
+    # after we've authenticated we need to renegotiate the stream
+    def restart
+      start
     end
   
     # this gets called back from the parser when we've got a Nokogiri Node to work with
