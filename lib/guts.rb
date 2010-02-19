@@ -1,6 +1,5 @@
 require 'nokogiri'
 require 'eventmachine'
-require 'logger'
 
 module Bersalis
   class Document < Nokogiri::XML::SAX::Document
@@ -77,7 +76,7 @@ module Bersalis
     end
   
     def receive_data(data)
-      Client.debug("IN: #{data}")
+      Bersalis.debug("IN: #{data}")
       self.parser << data
     end
   
@@ -89,7 +88,6 @@ module Bersalis
 
   class Client
     HANDLERS = []
-    @@logger = nil
   
     START_STREAM = "<stream:stream xmlns=\"jabber:client\" xmlns:stream=\"http://etherx.jabber.org/streams\" version=\"1.0\">"
   
@@ -100,19 +98,8 @@ module Bersalis
       options[:class] = klass
       HANDLERS << options
     end
-  
-    def self.info(msg)
-      @@logger.log(Logger::INFO, msg)
-    end
-  
-    def self.debug(msg)
-      @@logger.log(Logger::DEBUG, msg)
-    end
     
     def self.run
-      @@logger = Logger.new($stdout)
-      @@logger.level = Logger::DEBUG
-    
       self.connect
     end
   

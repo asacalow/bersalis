@@ -1,5 +1,19 @@
+require 'logger'
+
 module Bersalis
   VERSION = '0.2'
+  
+  def self.logger
+    @logger ||= Logger.new($stdout)
+  end
+  
+  def self.info(msg)
+    logger.log(Logger::INFO, msg)
+  end
+
+  def self.debug(msg)
+    logger.log(Logger::DEBUG, msg)
+  end
 end
 
 require 'guts'
