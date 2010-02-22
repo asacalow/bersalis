@@ -104,7 +104,7 @@ class ClientTest < Test::Unit::TestCase
         client.stubs(:stanza_class_for).with(node).returns(klass)
         
         handler = {:method => :handlethis}
-        client.stubs(:handler_for).with(klass).returns(handler)
+        client.stubs(:handler_for).with(klass, node).returns(handler)
         
         client.expects(:send).with(:handlethis, stanza)
         
@@ -135,13 +135,50 @@ class ClientTest < Test::Unit::TestCase
     end
     
     context 'stanza_class_for' do
-      should 'return a stanza class if node is recognised'
-      should 'return nothing if the node is unrecognised'
+      setup do
+        @klass = mock('Stanza class')
+        @opts = {
+          :path => '/a/test/foo:path', 
+          :namespaces => {:foo => 'http://foo.com'}
+        }
+        Bersalis::KNOWN_STANZAS[@klass] = @opts
+        @node = mock('Node')
+        @node.stubs(:at)
+      end
+      
+      should 'return a stanza class if node is recognised' do
+        @node.expects(:at).with(@opts[:path], @opts[:namespaces]).returns(true)
+        client = Bersalis::Client.new(@connection)
+        assert_equal client.send(:stanza_class_for, @node), @klass
+      end
+      
+      should 'return nothing if the node is unrecognised' do
+        @node.expects(:at).with(@opts[:path], @opts[:namespaces]).returns(nil)
+        client = Bersalis::Client.new(@connection)
+        assert_equal client.send(:stanza_class_for, @node), nil
+      end
     end
     
     context 'handler_for' do
-      should 'return a handler when recognised'
-      should 'not return a recognised handler where a filter has been applied'
+      setup do
+        @klass = mock('Stanza class')
+        @node=  mock('Node')
+        @opts = {:iama => 'handler'}
+      end
+      
+      should 'return a handler when recognised' do
+        Bersalis::Client::HANDLERS.expects(:select).returns([@opts])
+        client = Bersalis::Client.new(@connection)
+        assert_equal client.send(:handler_for, @klass, @node), @opts
+      end
+      
+      should 'not return a recognised handler where a filter has been applied' do
+        @opts[:filter] = '/nothing/to/see/here'
+        @node.expects(:at).with(@opts[:filter], {}).returns(nil)
+        Bersalis::Client::HANDLERS.expects(:select).returns([@opts])
+        client = Bersalis::Client.new(@connection)
+        assert_equal client.send(:handler_for, @klass, @node), nil
+      end
     end
   end
 end

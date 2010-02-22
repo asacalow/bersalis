@@ -126,7 +126,7 @@ module Bersalis
       return if klass.nil? # return if the stanza hasn't been recognised
       
       # now, if we know of a handler for the class, we can do something with it
-      handler = handler_for(klass)
+      handler = handler_for(klass, node)
       return if handler.nil? # no handler matched
       
       send(handler[:method], klass.new(node))
@@ -149,7 +149,7 @@ module Bersalis
       klass
     end
     
-    def handler_for(klass)
+    def handler_for(klass, node)
       possibles = HANDLERS.select{|h| klass == h[:class]}
       # now filter 'em
       opts = nil

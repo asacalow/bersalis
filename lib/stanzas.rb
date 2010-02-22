@@ -1,9 +1,9 @@
 # the abstract Stanza classes
 # a Stanza is basically a wrapper around a Nokogiri node
 
-KNOWN_STANZAS = {}
-
 module Bersalis
+  KNOWN_STANZAS = {}
+  
   class ReadOnlyStanza
     attr_accessor :node
   
