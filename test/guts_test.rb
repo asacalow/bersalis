@@ -183,7 +183,36 @@ class ClientTest < Test::Unit::TestCase
   end
 end
 
-# class DocumentTest < Test::Unit::TestCase
-#   should 'process a complete stanza'
-#   should 'not process an incomplete stanza'
-# end
+class DocumentTest < Test::Unit::TestCase
+  context 'Document' do
+    setup do
+      @client = mock('Client')
+      @parser = Nokogiri::XML::SAX::PushParser.new(Bersalis::Document.new(@client))
+    end
+  
+    should 'process a complete stanza' do
+      @client.expects(:process)
+      @parser << "<foo bar=\"foobar\"><baz /></foo>"
+    end
+  
+    should 'not process an incomplete stanza' do
+      @client.expects(:process).never
+      @parser << "<foo bar=\"foobar\"><baz />"
+    end
+    
+    should 'create a node from the parser input' do
+      class << @client
+        attr_accessor :node
+        
+        def process(node)
+          self.node = node
+        end
+      end
+      
+      @parser << "<foo bar=\"foobar\"><baz /></foo>"
+      
+      assert_kind_of Bersalis::Node, @client.node
+      assert_equal @client.node.name, 'foo'
+    end
+  end
+end
