@@ -201,18 +201,12 @@ class DocumentTest < Test::Unit::TestCase
     end
     
     should 'create a node from the parser input' do
-      class << @client
-        attr_accessor :node
-        
-        def process(node)
-          self.node = node
-        end
+      @client.stubs(:process).with do |node|
+        assert_kind_of Bersalis::Node, node
+        assert_equal node.name, 'foo'
+        true
       end
-      
       @parser << "<foo bar=\"foobar\"><baz /></foo>"
-      
-      assert_kind_of Bersalis::Node, @client.node
-      assert_equal @client.node.name, 'foo'
     end
   end
 end
