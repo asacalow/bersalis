@@ -82,10 +82,39 @@ end
 
 class StanzaTest < Test::Unit::TestCase
   context 'self.create' do
-    should 'instantiate and set up a node' do
+    setup do
       class DummyStanza < Bersalis::Stanza; NODE_NAME='foo'; end
+    end
+    
+    should 'instantiate a node' do
       stanza = DummyStanza.create
       assert_kind_of Bersalis::Node, stanza.node
+    end
+    
+    should 'set up the instance' do
+      DummyStanza.expects(:setup)
+      DummyStanza.create
+    end
+  end
+end
+
+class NodeTest < Test::Unit::TestCase
+  context 'Node' do
+    context 'finish_up' do
+      should 'set itself as the root node for its document' do
+        node = Bersalis::Node.new('foo')
+        node.document.expects(:root=).with(node)
+        node.finish_up
+      end
+    end
+    
+    context 'at' do
+      should 'hand off to the node document' do
+        node = Bersalis::Node.new('foo')
+        path = '/this/is/a/path'
+        node.document.expects(:at).with(path)
+        node.at(path)
+      end
     end
   end
 end
