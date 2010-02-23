@@ -30,7 +30,7 @@ module Bersalis
   
     def self.attribute(name, opts={})
       define_method("#{name}") do
-        path = opts[:path], opts[:namespaces]
+        path = opts[:path]
         namespaces = opts[:namespaces] || {}
         attribute_name = (opts[:attribute_name] || name).to_s
         return self.at(path, namespaces)[attribute_name]
