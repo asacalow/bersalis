@@ -1,5 +1,5 @@
 module Bersalis
-  class RosterGet < Iq
+  class RosterGet < IQ
     def self.setup(node)
       node = super(node)
       query = node << Nokogiri::XML::Node.new('query', node.document)

@@ -4,8 +4,9 @@ module Bersalis
     # register '/stream:features', 'stream' => 'http://etherx.jabber.org/streams'
   end
 
-  class Bind < Iq
+  class Bind < IQ
     register '/iq/bind:bind', 'bind' => 'urn:ietf:params:xml:ns:xmpp-bind'
+    
     content :jid,       :path => '//bind:jid',      :namespaces => {'bind' => 'urn:ietf:params:xml:ns:xmpp-bind'}
     content :resource,  :path => '//bind:resource', :namespaces => {'bind' => 'urn:ietf:params:xml:ns:xmpp-bind'}
   
@@ -19,7 +20,7 @@ module Bersalis
     end
   end
 
-  class Session < Iq
+  class Session < IQ
     register '/iq/session:session', 'session' => 'urn:ietf:params:xml:ns:xmpp-session'
   
     def self.setup(node)
