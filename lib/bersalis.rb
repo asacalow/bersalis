@@ -18,7 +18,7 @@ end
 
 require 'guts'
 require 'stanzas'
-require 'stanzas/basic'
+require 'stanzas/core'
 require 'stanzas/auth'
 require 'stanzas/session'
 require 'stanzas/roster'
