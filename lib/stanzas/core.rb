@@ -7,14 +7,15 @@ module Bersalis
     attribute :type,  :path => '/iq'
     attribute :id,    :path => '/iq'
     
-    def setup(node)
-      node[:id] = generate_id
+    def self.setup(node)
+      super(node)
+      node['id'] = IQ.increment_id!.to_s
       node
     end
     
-    def generate_id
-      # TODO
-      "1234"
+    def self.increment_id!
+      @iq_id ||= 0
+      @iq_id += 1
     end
   end
   

@@ -18,6 +18,18 @@ class Test::Unit::TestCase
     end
   end
   
+  def self.should_have_attribute(attribute_name)
+    test_class = constantize(Shoulda.current_context.name)
+    
+    should 'have a valid getter' do
+      stanza = test_class.create # xxxxx!!!!!!
+    end
+    
+    should 'have a valid setter' do
+      
+    end
+  end
+  
   # borrowed from Rails::ActiveSupport
   def self.constantize(camel_cased_word)
     names = camel_cased_word.split('::')
