@@ -122,14 +122,16 @@ module Bersalis
   
     # this gets called back from the parser when we've got a Nokogiri Node to work with
     def process(node)
-      klass = stanza_class_for(node)
-      return if klass.nil? # return if the stanza hasn't been recognised
+      klasses = stanza_classes_for(node)
+      return if klasses.empty? # return if the stanza hasn't been recognised
       
-      # now, if we know of a handler for the class, we can do something with it
-      handler = handler_for(klass, node)
-      return if handler.nil? # no handler matched
+      for klass in klasses
+        # now, if we know of a handler for the class, we can do something with it
+        handler = handler_for(klass, node)
+        return if handler.nil? # no handler matched
       
-      send(handler[:method], klass.new(node))
+        send(handler[:method], klass.new(node))
+      end
     end
   
     def write(stanza)
@@ -140,13 +142,13 @@ module Bersalis
     
     private
     
-    def stanza_class_for(node)
-      klass = nil
+    def stanza_classes_for(node)
+      klasses = []
       KNOWN_STANZAS.each_pair do |kls, nns|
         # if we get a hit for the registered path/namespace pairing then we have a recognisable class
-        klass = kls if !node.at(nns[:path], nns[:namespaces]).nil?
+        klasses << kls if !node.at(nns[:path], nns[:namespaces]).nil?
       end
-      klass
+      klasses
     end
     
     def handler_for(klass, node)

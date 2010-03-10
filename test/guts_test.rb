@@ -89,7 +89,7 @@ class ClientTest < Test::Unit::TestCase
       should 'not do anything with an unrecognised stanza' do
         node = mock('node')
         client = Bersalis::Client.new(@connection)
-        client.stubs(:stanza_class_for).returns(nil)
+        client.stubs(:stanza_classes_for).returns([])
         client.expects(:handler_for).never
         client.process(node)
       end
@@ -101,7 +101,7 @@ class ClientTest < Test::Unit::TestCase
         klass.stubs(:new).returns(stanza)
         
         client = Bersalis::Client.new(@connection)
-        client.stubs(:stanza_class_for).with(node).returns(klass)
+        client.stubs(:stanza_classes_for).with(node).returns([klass])
         
         handler = {:method => :handlethis}
         client.stubs(:handler_for).with(klass, node).returns(handler)
@@ -134,7 +134,7 @@ class ClientTest < Test::Unit::TestCase
       end
     end
     
-    context 'stanza_class_for' do
+    context 'stanza_classes_for' do
       setup do
         @klass = mock('Stanza class')
         @opts = {
@@ -149,13 +149,13 @@ class ClientTest < Test::Unit::TestCase
       should 'return a stanza class if node is recognised' do
         @node.expects(:at).with(@opts[:path], @opts[:namespaces]).returns(true)
         client = Bersalis::Client.new(@connection)
-        assert_equal client.send(:stanza_class_for, @node), @klass
+        assert_equal client.send(:stanza_classes_for, @node), [@klass]
       end
       
       should 'return nothing if the node is unrecognised' do
         @node.expects(:at).with(@opts[:path], @opts[:namespaces]).returns(nil)
         client = Bersalis::Client.new(@connection)
-        assert_equal client.send(:stanza_class_for, @node), nil
+        assert_equal client.send(:stanza_classes_for, @node), []
       end
     end
     
