@@ -7,26 +7,50 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'bersalis'
 
 class Test::Unit::TestCase
-  def self.should_be_recognised_as(xml_string)
-    test_class = constantize(Shoulda.current_context.name)
+  def self.test_stanza(xml_string)
+    @stanza = xml_string
+    
+    # generate the class name from the context
+    @test_class = constantize(Shoulda.current_context.name)
+    
+    # test to ensure that the given xml matches the stanza
+    self.should_be_recognised
+  end
+  
+  def self.should_be_recognised
+    # these are required for scoping purposes
+    stanza = @stanza
+    test_class = @test_class
     
     should 'be recognised' do
       connection = mock('Connection')
       client = Bersalis::Client.new(connection)
-      document = Nokogiri::XML::Document.parse(xml_string)
+      document = Nokogiri::XML::Document.parse(stanza)
       assert_equal test_class, client.send(:stanza_class_for, document.root)
     end
   end
   
-  def self.should_have_attribute(attribute_name)
-    test_class = constantize(Shoulda.current_context.name)
+  def self.should_have(attribute_name, value)
+    # these are required for scoping purposes
+    stanza = @stanza
+    test_class = @test_class
     
-    should 'have a valid getter' do
-      stanza = test_class.create # xxxxx!!!!!!
+    should "have a valid getter '#{attribute_name}'" do
+      connection = mock('Connection')
+      client = Bersalis::Client.new(connection)
+      document = Nokogiri::XML::Document.parse(stanza)
+      instance = test_class.new(document.root)
+      assert_equal instance.send("#{attribute_name}"), value
     end
     
-    should 'have a valid setter' do
-      
+    should "have a valid setter '#{attribute_name}'" do
+      connection = mock('Connection')
+      client = Bersalis::Client.new(connection)
+      document = Nokogiri::XML::Document.parse(stanza)
+      instance = test_class.new(document.root)
+      value = '1234thisisatestvalueabcd'
+      instance.send("#{attribute_name}=", value)
+      assert_equal instance.send("#{attribute_name}"), value
     end
   end
   
