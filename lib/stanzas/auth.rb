@@ -4,6 +4,8 @@ module Bersalis
   end
 
   class AnonymousAuth < Auth
+    register '/auth:auth[@mechanism="ANONYMOUS"]', 'auth' => 'urn:ietf:params:xml:ns:xmpp-sasl'
+    
     def self.setup(node)
       node = super(node)
       node.add_namespace(nil, 'urn:ietf:params:xml:ns:xmpp-sasl')
@@ -13,6 +15,8 @@ module Bersalis
   end
 
   class PlainAuth < Auth
+    register '/auth:auth[@mechanism="PLAIN"]', 'auth' => 'urn:ietf:params:xml:ns:xmpp-sasl'
+    
     def self.setup(node)
       node = super(node)
       node.add_namespace(nil, 'urn:ietf:params:xml:ns:xmpp-sasl')

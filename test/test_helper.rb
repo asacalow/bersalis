@@ -54,6 +54,16 @@ class Test::Unit::TestCase
     end
   end
   
+  def self.should_create(xml_string)
+    test_class = @test_class
+    
+    should 'generate the correct xml on creation' do
+      xml = test_class.create.to_xml
+      xml = xml.split(/\n/).join # remove newlines
+      assert_equal xml_string, xml
+    end
+  end
+  
   # borrowed from Rails::ActiveSupport
   def self.constantize(camel_cased_word)
     names = camel_cased_word.split('::')
