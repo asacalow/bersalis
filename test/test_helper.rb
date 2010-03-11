@@ -26,7 +26,7 @@ class Test::Unit::TestCase
       connection = mock('Connection')
       client = Bersalis::Client.new(connection)
       document = Nokogiri::XML::Document.parse(stanza)
-      assert_equal test_class, client.send(:stanza_classes_for, document.root).first
+      assert_contains client.send(:stanza_classes_for, document.root), test_class
     end
   end
   
