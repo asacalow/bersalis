@@ -1,4 +1,5 @@
 require 'logger'
+require 'digest'
 
 module Bersalis
   VERSION = '0.2'
