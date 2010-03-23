@@ -110,6 +110,28 @@ class ClientTest < Test::Unit::TestCase
         
         client.process(node)
       end
+      
+      should 'apply the correct handler when the stanza is recognised as a couple of different things' do
+        node = mock('node')
+        klass = mock('Stanza class')
+        stanza = mock('Stanza')
+        klass.stubs(:new).returns(stanza)
+        
+        another_klass = mock('Stanza class')
+        another_stanza = mock('Stanza')
+        another_klass.stubs(:new).returns(another_stanza)
+        
+        client = Bersalis::Client.new(@connection)
+        client.stubs(:stanza_classes_for).with(node).returns([another_klass, klass])
+        
+        handler = {:method => :handlethis}
+        client.stubs(:handler_for).with(another_klass, node).returns(nil)
+        client.stubs(:handler_for).with(klass, node).returns(handler)
+        
+        client.expects(:send).with(:handlethis, stanza)
+        
+        client.process(node)
+      end
     end
 
     context 'write data' do

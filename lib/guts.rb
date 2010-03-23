@@ -128,7 +128,7 @@ module Bersalis
       for klass in klasses
         # now, if we know of a handler for the class, we can do something with it
         handler = handler_for(klass, node)
-        return if handler.nil? # no handler matched
+        next if handler.nil? # no handler matched
       
         send(handler[:method], klass.new(node))
       end
