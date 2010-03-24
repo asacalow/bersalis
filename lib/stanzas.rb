@@ -20,8 +20,8 @@ module Bersalis
       self.node.at(path, namespaces)
     end
 
-    def to_xml
-      self.node.to_xml
+    def to_xml(*args)
+      self.node.to_xml(*args)
     end
   
     def self.register(path, namespaces={})

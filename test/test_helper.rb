@@ -58,8 +58,9 @@ class Test::Unit::TestCase
     test_class = @test_class
     
     should 'generate the correct xml on creation' do
-      xml = test_class.create.to_xml
+      xml = test_class.create.to_xml(:indent => 0) # we pass an indent of 0 here so we don't have to indent our supplied test xml
       xml = xml.split(/\n/).join # remove newlines
+      
       assert_equal xml_string, xml
     end
   end
