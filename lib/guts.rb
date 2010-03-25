@@ -1,6 +1,3 @@
-require 'nokogiri'
-require 'eventmachine'
-
 module Bersalis
   class Document < Nokogiri::XML::SAX::Document
     attr_accessor :receiver
@@ -90,7 +87,7 @@ module Bersalis
   
     START_STREAM = "<stream:stream xmlns=\"jabber:client\" xmlns:stream=\"http://etherx.jabber.org/streams\" version=\"1.0\">"
   
-    attr_accessor :connection
+    attr_accessor :connection, :iq_callbacks
   
     def self.handle(klass, method, options={})
       options[:method] = method
@@ -108,6 +105,7 @@ module Bersalis
   
     def initialize(connection)
       self.connection = connection
+      self.iq_callbacks = {}
     end
   
     def start
@@ -126,6 +124,8 @@ module Bersalis
   
     # this gets called back from the parser when we've got a Nokogiri Node to work with
     def process(node)
+      return if callback_for(node)
+      
       klasses = stanza_classes_for(node)
       return if klasses.empty? # return if the stanza hasn't been recognised
       
@@ -142,6 +142,11 @@ module Bersalis
       xml = stanza.to_xml
       Bersalis.debug("OUT: #{xml}")
       self.connection.send_data(xml)
+    end
+    
+    def write_iq(stanza, &block)
+      self.iq_callbacks[stanza.id] = stanza
+      write stanza
     end
     
     private
@@ -164,6 +169,15 @@ module Bersalis
         opts = options
       end
       opts
+    end
+    
+    def callback_for(node)
+      iq = node.at('/iq[@type="result"]')
+      return unless iq # not an iq result
+      iq_id = iq['id']
+      outgoing_iq = self.iq_callbacks[iq_id]
+      return unless outgoing_iq # no outgoing iq matches
+      outgoing_iq.succeed outgoing_iq.class.new(node) # assumption is that incoming stanza is of the same class as outgoing!
     end
   end
 end

@@ -96,9 +96,18 @@ class ClientTest < Test::Unit::TestCase
     end
 
     context 'process' do
+      should 'stop processing if a callback is found' do
+        node = mock('node')
+        client = Bersalis::Client.new(@connection)
+        client.stubs(:callback_for).returns('something')
+        client.expects(:stanza_classes_for).never
+        assert_nil client.process(node)
+      end
+      
       should 'not do anything with an unrecognised stanza' do
         node = mock('node')
         client = Bersalis::Client.new(@connection)
+        client.stubs(:callback_for).returns(nil)
         client.stubs(:stanza_classes_for).returns([])
         client.expects(:handler_for).never
         client.process(node)
@@ -111,6 +120,7 @@ class ClientTest < Test::Unit::TestCase
         klass.stubs(:new).returns(stanza)
         
         client = Bersalis::Client.new(@connection)
+        client.stubs(:callback_for).returns(nil)
         client.stubs(:stanza_classes_for).with(node).returns([klass])
         
         handler = {:method => :handlethis}
@@ -132,6 +142,7 @@ class ClientTest < Test::Unit::TestCase
         another_klass.stubs(:new).returns(another_stanza)
         
         client = Bersalis::Client.new(@connection)
+        client.stubs(:callback_for).returns(nil)
         client.stubs(:stanza_classes_for).with(node).returns([another_klass, klass])
         
         handler = {:method => :handlethis}
@@ -144,7 +155,7 @@ class ClientTest < Test::Unit::TestCase
       end
     end
 
-    context 'write data' do
+    context 'write' do
       setup do
         @connection.stubs(:send_data)
       end
@@ -163,6 +174,27 @@ class ClientTest < Test::Unit::TestCase
         @connection.expects(:send_data).with(data)
         client = Bersalis::Client.new(@connection)
         client.write(stanza)
+      end
+    end
+    
+    context 'write_iq' do
+      setup do
+        @client = Bersalis::Client.new(@connection)
+        @client.stubs(:write)
+      end
+      
+      should 'store a callback for the outgoing stanza' do
+        stanza = mock('Stanza')
+        stanza.stubs(:id).returns(1234)
+        @client.write_iq(stanza)
+        assert_equal @client.iq_callbacks[1234], stanza
+      end
+      
+      should 'send the stanza' do
+        stanza = mock('Stanza')
+        stanza.stubs(:id).returns(1234)
+        @client.expects(:write).with(stanza)
+        @client.write_iq(stanza)
       end
     end
     
@@ -210,6 +242,49 @@ class ClientTest < Test::Unit::TestCase
         Bersalis::Client::HANDLERS.expects(:select).returns([@opts])
         client = Bersalis::Client.new(@connection)
         assert_equal client.send(:handler_for, @klass, @node), nil
+      end
+    end
+    
+    context 'callback_for' do
+      setup do
+        @client = Bersalis::Client.new(@connection)
+        @iq_klass = mock('An IQ class')
+        @iq = mock('IQ')
+        @iq.stubs(:class).returns(@iq_klass)
+        @iq_klass.stubs(:new)
+      end
+      
+      should 'return nil if stanza is not an iq result' do
+        node = mock('Node')
+        node.stubs(:at).returns(nil)
+        assert_nil @client.send(:callback_for, node)
+      end
+      
+      should 'return nil if no callback is found' do
+        node = mock('Node')
+        node.stubs(:at).returns({'id' => 1234})
+        @client.iq_callbacks = {}
+        assert_nil @client.send(:callback_for, node)
+      end
+      
+      should 'call back if a corresponding outgoing iq is found' do
+        node = mock('Node')
+        node.stubs(:at).returns({'id' => 1234})
+        @client.iq_callbacks[1234] = @iq
+        @iq.expects(:succeed)
+        @client.send(:callback_for, node)
+      end
+      
+      should 'call back with an iq of the same type as the outgoing' do
+        node = mock('Node')
+        node.stubs(:at).returns({'id' => 1234})
+        
+        incoming_iq = mock('IQ')
+        @iq_klass.stubs(:new).returns(incoming_iq)
+        
+        @client.iq_callbacks[1234] = @iq
+        @iq.expects(:succeed).with(incoming_iq)
+        @client.send(:callback_for, node)
       end
     end
   end
