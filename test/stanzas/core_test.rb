@@ -17,6 +17,10 @@ class CoreTest < Test::Unit::TestCase
       second = Bersalis::IQ.create
       assert_not_equal first.id, second.id
     end
+    
+    should 'be deferrable' do
+      assert_contains Bersalis::IQ.ancestors, EventMachine::Deferrable
+    end
   end
   
   context 'Bersalis::Presence' do

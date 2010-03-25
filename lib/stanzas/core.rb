@@ -1,5 +1,7 @@
 module Bersalis
   class IQ < Stanza
+    include EventMachine::Deferrable
+    
     NODE_NAME = 'iq'
     
     register '/iq'

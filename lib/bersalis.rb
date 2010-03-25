@@ -1,6 +1,8 @@
 require 'logger'
 require 'digest'
 require 'rubygems'
+require 'eventmachine'
+require 'nokogiri'
 
 module Bersalis
   VERSION = '0.2'
