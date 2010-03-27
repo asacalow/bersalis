@@ -68,11 +68,21 @@ class ClientTest < Test::Unit::TestCase
         @client.start
       end
     end
-
-    should 'restarting should start again' do
-      client = Bersalis::Client.new(@connection)
-      client.expects(:start)
-      client.restart
+    
+    context 'restarting' do
+      should 'just call start again' do
+        client = Bersalis::Client.new(@connection)
+        client.expects(:start)
+        client.restart
+      end
+    end
+    
+    context 'starting tls' do
+      should 'start tls on the connection' do
+        @connection.expects(:start_tls)
+        client = Bersalis::Client.new(@connection)
+        client.start_tls
+      end
     end
 
     context 'creating a handler' do

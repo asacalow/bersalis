@@ -14,4 +14,12 @@ class SessionTest < Test::Unit::TestCase
   context 'Bersalis::Features' do
     test_stanza "<features />"
   end
+  
+  context 'Bersalis::StartTLS' do
+    test_stanza "<starttls xmlns=\"urn:ietf:params:xml:ns:xmpp-tls\"/>"
+  end
+  
+  context 'Bersalis::StartTLSProceed' do
+    test_stanza "<proceed xmlns=\"urn:ietf:params:xml:ns:xmpp-tls\"/>"
+  end
 end

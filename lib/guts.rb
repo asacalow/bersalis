@@ -115,6 +115,10 @@ module Bersalis
       self.connection.send_data(Client::START_STREAM)
     end
     
+    def start_tls
+      self.connection.start_tls
+    end
+    
     # after we've authenticated we need to renegotiate the stream
     def restart
       start

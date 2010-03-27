@@ -2,6 +2,10 @@ module Bersalis
   class Features < ReadOnlyStanza
     register '/features'
     # register '/stream:features', 'stream' => 'http://etherx.jabber.org/streams'
+    
+    def tls_required?
+      !!self.node.at('/features/tls:starttls/tls:required', 'tls' => 'urn:ietf:params:xml:ns:xmpp-tls')
+    end
   end
 
   class Bind < IQ
@@ -28,6 +32,26 @@ module Bersalis
       session = node << Nokogiri::XML::Node.new('session', node.document)
       session.add_namespace(nil, 'urn:ietf:params:xml:ns:xmpp-session')
       node
+    end
+  end
+  
+  class StartTLS < Stanza
+    register '/starttls:starttls', 'starttls' => 'urn:ietf:params:xml:ns:xmpp-tls'
+    NODE_NAME = 'starttls'
+    
+    def self.setup(node)
+      super(node)
+      node.add_namespace(nil, 'urn:ietf:params:xml:ns:xmpp-tls')
+    end
+  end
+  
+  class StartTLSProceed < Stanza
+    register '/starttls:proceed', 'starttls' => 'urn:ietf:params:xml:ns:xmpp-tls'
+    NODE_NAME = 'proceed'
+    
+    def self.setup(node)
+      super(node)
+      node.add_namespace(nil, 'urn:ietf:params:xml:ns:xmpp-tls')
     end
   end
 end
