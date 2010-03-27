@@ -1,5 +1,6 @@
 require 'logger'
 require 'digest'
+require 'rubygems'
 
 module Bersalis
   VERSION = '0.2'
