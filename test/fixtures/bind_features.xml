@@ -1,0 +1,4 @@
+<stream:features>
+    <bind xmlns="urn:ietf:params:xml:ns:xmpp-bind"/>
+    <session xmlns="urn:ietf:params:xml:ns:xmpp-session"/>
+</stream:features>
