@@ -20,10 +20,6 @@ module Bersalis
       self.node.at(path, namespaces)
     end
 
-    def to_xml(*args)
-      self.node.to_xml(*args)
-    end
-  
     def self.register(path, namespaces={})
       KNOWN_STANZAS[self] = {:path => path, :namespaces => namespaces}
     end
@@ -80,6 +76,14 @@ module Bersalis
     #   end
     def self.setup(node)
       node
+    end
+    
+    def to_xml(*args)
+      self.node.to_xml(*args)
+    end
+    
+    def reply!
+      self.to, self.from = self.from, self.to
     end
   end
   
