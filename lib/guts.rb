@@ -106,7 +106,7 @@ module Bersalis
   
     def start
       self.connection.start
-      write Client::START_STREAM
+      self.connection.send_data(Client::START_STREAM)
     end
     
     def start_tls

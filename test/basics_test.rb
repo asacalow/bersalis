@@ -1,34 +1,27 @@
 require File.join(File.dirname(__FILE__), 'test_helper')
-include Bersalis
 
-class BasicClientTest < Test::Unit::TestCase
-  testing BasicClient
-  
-  should_handle stanza_fixture(:auth_features),           :choose_auth_mechanism
-  should_handle stanza_fixture(:auth_features_with_tls),  :choose_auth_mechanism
-  should_handle stanza_fixture(:tls_proceed),             :proceed_with_tls
-  should_handle stanza_fixture(:md5_challenge),           :auth_challenge
-  should_handle stanza_fixture(:auth_success),            :authentication_successful
-end
+# class BasicClientTest < Test::Unit::TestCase
+#   # insert integration test here
+# end
 
 class JIDTest < Test::Unit::TestCase
   context 'new' do
     should 'separate out the username, host and resource correctly' do
-      j = JID.new('bob@example.com/trousers')
+      j = Bersalis::JID.new('bob@example.com/trousers')
       assert_equal j.username, 'bob'
       assert_equal j.host, 'example.com'
       assert_equal j.resource, 'trousers'
     end
     
     should 'handle just being given a bare jid' do
-      j = JID.new('bob@example.com')
+      j = Bersalis::JID.new('bob@example.com')
       assert_equal  j.username, 'bob'
       assert_equal  j.host, 'example.com'
       assert_nil    j.resource
     end
     
     should 'handle just being given a hostname' do
-      j = JID.new('example.com')
+      j = Bersalis::JID.new('example.com')
       assert_nil    j.username
       assert_equal  j.host, 'example.com'
       assert_nil    j.resource
@@ -43,14 +36,14 @@ class JIDTest < Test::Unit::TestCase
     end
     
     should 'just return the bare jid if no resource given' do
-      j = JID.new
+      j = Bersalis::JID.new
       j.username = 'bob'
       j.host = 'example.com'
       assert_equal j.to_s, 'bob@example.com'
     end
     
     should 'return the full jid if username, host and resource is given' do
-      j = JID.new
+      j = Bersalis::JID.new
       j.username = 'bob'
       j.host = 'example.com'
       j.resource = 'trousers'
@@ -60,7 +53,7 @@ class JIDTest < Test::Unit::TestCase
   
   context 'bare_jid' do
     should 'return just the bare jid' do
-      j = JID.new('bob@example.com/trousers')
+      j = Bersalis::JID.new('bob@example.com/trousers')
       assert_equal j.bare_jid, 'bob@example.com'
     end
   end
