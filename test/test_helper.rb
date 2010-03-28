@@ -23,8 +23,7 @@ class Test::Unit::TestCase
     test_class = @test_class
     
     should 'be recognised' do
-      connection = mock('Connection')
-      client = Bersalis::Client.new(connection)
+      client = Bersalis::Client.new
       document = Nokogiri::XML::Document.parse(stanza)
       assert_contains client.send(:stanza_classes_for, document.root), test_class
     end
@@ -36,16 +35,14 @@ class Test::Unit::TestCase
     test_class = @test_class
     
     should "have a valid getter '#{attribute_name}'" do
-      connection = mock('Connection')
-      client = Bersalis::Client.new(connection)
+      client = Bersalis::Client.new
       document = Nokogiri::XML::Document.parse(stanza)
       instance = test_class.new(document.root)
       assert_equal instance.send("#{attribute_name}"), value
     end
     
     should "have a valid setter '#{attribute_name}'" do
-      connection = mock('Connection')
-      client = Bersalis::Client.new(connection)
+      client = Bersalis::Client.new
       document = Nokogiri::XML::Document.parse(stanza)
       instance = test_class.new(document.root)
       value = '1234thisisatestvalueabcd'
