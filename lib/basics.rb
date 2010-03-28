@@ -8,11 +8,11 @@ module Bersalis
     handle Bind,                      :bound
     handle Session,                   :session_started
     
-    def initialize(opts, *args)
+    def initialize(opts={}, *args)
       super(*args)
-      @jid = JID.new(opts[:jid])
+      @jid = JID.new(opts[:jid]) if opts[:jid]
       @password = opts[:password]
-      @host = opts[:host] || @jid.host
+      @host = opts[:host] || (@jid && @jid.host)
     end
     
     def choose_auth_mechanism(features)

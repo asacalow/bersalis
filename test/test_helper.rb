@@ -7,6 +7,10 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'bersalis'
 
 class Test::Unit::TestCase
+  def self.testing(klass)
+    @test_class = klass
+  end
+  
   def self.test_stanza(xml_string)
     @stanza = xml_string
     
@@ -60,6 +64,23 @@ class Test::Unit::TestCase
       
       assert_equal xml_string, xml
     end
+  end
+  
+  def self.should_handle(stanza, method)
+    test_class = @test_class
+    
+    should "use the method '#{method}' to handle '#{stanza}'" do
+       client = test_class.new
+       client.stubs(:write)
+       connection = Bersalis::Connection.new('dummysig', client)
+       connection.stubs(:start_tls)
+       client.expects(method)
+       connection.receive_data(stanza) # simulate stanza coming in over the wire
+    end
+  end
+  
+  def self.stanza_fixture(stanza_name)
+    File.open(File.join(File.dirname(__FILE__), 'fixtures', "#{stanza_name.to_s}.xml")).read
   end
   
   # borrowed from Rails::ActiveSupport
