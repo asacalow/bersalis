@@ -56,9 +56,9 @@ class ClientTest < Test::Unit::TestCase
       setup do
         @connection = mock('Connection')
         @connection.stubs(:start)
-        @connection.stubs(:send_data)
         @client = Bersalis::Client.new
         @client.connection = @connection
+        @client.stubs(:write)
       end
 
       should 'start the connection' do
@@ -67,7 +67,7 @@ class ClientTest < Test::Unit::TestCase
       end
 
       should 'send a stream start message' do
-        @connection.expects(:send_data).with(Bersalis::Client::START_STREAM)
+        @client.expects(:write).with(Bersalis::Client::START_STREAM)
         @client.start
       end
     end
@@ -151,16 +151,26 @@ class ClientTest < Test::Unit::TestCase
         @connection.stubs(:send_data)
       end
       
-      should 'convert the stanza to xml' do
+      should 'convert the stanza to xml if appropriate' do
         stanza = mock('Stanza')
+        stanza.stubs(:respond_to?).with(:to_xml).returns(true)
         stanza.expects(:to_xml)
         client = Bersalis::Client.new
         client.connection = @connection
         client.write(stanza)
       end
       
+      should 'just send the stanza without converting it if appropriate' do
+        xml = '<foo />'
+        client = Bersalis::Client.new
+        client.connection = @connection
+        @connection.expects(:send_data).with(xml)
+        client.write(xml)
+      end
+      
       should 'send data over the connection' do
         stanza = mock('Stanza')
+        stanza.stubs(:respond_to?).with(:to_xml).returns(true)
         data = '<bar />'
         stanza.expects(:to_xml).returns(data)
         @connection.expects(:send_data).with(data)

@@ -106,7 +106,7 @@ module Bersalis
   
     def start
       self.connection.start
-      write Client::START_STREAM
+      self.write Client::START_STREAM
     end
     
     def start_tls
@@ -135,7 +135,7 @@ module Bersalis
     end
   
     def write(stanza)
-      xml = stanza.to_xml
+      xml = stanza.respond_to?(:to_xml) ? stanza.to_xml : stanza
       Bersalis.debug("OUT: #{xml}")
       self.connection.send_data(xml)
     end

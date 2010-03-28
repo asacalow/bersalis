@@ -70,10 +70,11 @@ class Test::Unit::TestCase
     test_class = @test_class
     
     should "use the method '#{method}' to handle '#{stanza}'" do
-       client = test_class.new
+       client = test_class.new(:jid => 'bob@example.com', :password => 'unguess4ble')
        client.stubs(:write)
        connection = Bersalis::Connection.new('dummysig', client)
        connection.stubs(:start_tls)
+       
        client.expects(method)
        connection.receive_data(stanza) # simulate stanza coming in over the wire
     end
