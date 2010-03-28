@@ -3,22 +3,27 @@ require File.join(File.dirname(__FILE__), 'test_helper')
 class ConnectionTest < Test::Unit::TestCase
   context 'Connection' do
     setup do
-      @klass = mock('client class')
-      @client = mock('client', {:start => nil})
-      @klass.stubs(:new).returns(@client)
+      @client = Bersalis::Client.new
+      @client.stubs(:start)
     end
-
+    
     context 'initialising' do
-      should 'instantiate a client' do
-        @klass.expects(:new).returns(@client)
-        Bersalis::Connection.new('dummysig', @klass)
+      should 'wire together the connection and the given client' do
+        connection = Bersalis::Connection.new('dummysig', @client)
+        assert_equal @client.connection, connection
+        assert_equal connection.client, @client
+      end
+      
+      should 'start the client after the connection is initialised' do
+        @client.expects(:start)
+        connection = Bersalis::Connection.new('dummysig', @client)
       end
     end
 
     context 'starting' do
       should 'instantiate a parser' do
         Nokogiri::XML::SAX::PushParser.expects(:new)
-        connection = Bersalis::Connection.new('dummysig', @klass)
+        connection = Bersalis::Connection.new('dummysig', @client)
         connection.start
       end
     end
@@ -26,7 +31,7 @@ class ConnectionTest < Test::Unit::TestCase
     context 'receiving data' do
       setup do
         @parser = mock('Parser')
-        @connection = Bersalis::Connection.new('dummysig', @klass)
+        @connection = Bersalis::Connection.new('dummysig', @client)
         @connection.parser = @parser
         @parser.stubs('<<')
       end
@@ -47,18 +52,16 @@ end
 
 class ClientTest < Test::Unit::TestCase
   context 'Client' do
-    setup do
-      @connection = mock('Connection')
-    end
-
     context 'starting' do
       setup do
+        @connection = mock('Connection')
         @connection.stubs(:start)
         @connection.stubs(:send_data)
-        @client = Bersalis::Client.new(@connection)
+        @client = Bersalis::Client.new
+        @client.connection = @connection
       end
 
-      should 'set up the connection' do
+      should 'start the connection' do
         @connection.expects(:start)
         @client.start
       end
@@ -71,7 +74,7 @@ class ClientTest < Test::Unit::TestCase
     
     context 'restarting' do
       should 'just call start again' do
-        client = Bersalis::Client.new(@connection)
+        client = Bersalis::Client.new
         client.expects(:start)
         client.restart
       end
@@ -79,8 +82,11 @@ class ClientTest < Test::Unit::TestCase
     
     context 'starting tls' do
       should 'start tls on the connection' do
-        @connection.expects(:start_tls)
-        client = Bersalis::Client.new(@connection)
+        connection = mock('Connection')
+        client = Bersalis::Client.new
+        client.connection = connection
+        
+        connection.expects(:start_tls)
         client.start_tls
       end
     end
@@ -96,74 +102,60 @@ class ClientTest < Test::Unit::TestCase
     end
 
     context 'process' do
-      should 'stop processing if a callback is found' do
-        node = mock('node')
-        client = Bersalis::Client.new(@connection)
-        client.stubs(:callback_for).returns('something')
-        client.expects(:stanza_classes_for).never
-        assert_nil client.process(node)
+      setup do
+        @node = mock('Node')
+        @stanza_klass = mock('Stanza class')
+        @stanza = mock('Stanza')
+        @stanza_klass.stubs(:new).returns(@stanza)
+        @client = Bersalis::Client.new
+        @client.stubs(:callback_for).returns(nil)
       end
       
-      should 'not do anything with an unrecognised stanza' do
-        node = mock('node')
-        client = Bersalis::Client.new(@connection)
-        client.stubs(:callback_for).returns(nil)
-        client.stubs(:stanza_classes_for).returns([])
-        client.expects(:handler_for).never
-        client.process(node)
+      should 'stop processing if a callback is found' do
+        @client.stubs(:callback_for).returns('something')
+        @client.expects(:stanza_classes_for).never
+        @client.process(@node)
+      end
+      
+      should 'not look for a handler for an unrecognised stanza' do
+        @client.stubs(:stanza_classes_for).returns([])
+        @client.expects(:handler_for).never
+        assert_nil @client.process(@node)
       end
 
       should 'apply the handler for a recognised stanza' do
-        node = mock('node')
-        klass = mock('Stanza class')
-        stanza = mock('Stanza')
-        klass.stubs(:new).returns(stanza)
-        
-        client = Bersalis::Client.new(@connection)
-        client.stubs(:callback_for).returns(nil)
-        client.stubs(:stanza_classes_for).with(node).returns([klass])
-        
+        @client.stubs(:stanza_classes_for).with(@node).returns([@stanza_klass])
         handler = {:method => :handlethis}
-        client.stubs(:handler_for).with(klass, node).returns(handler)
-        
-        client.expects(:send).with(:handlethis, stanza)
-        
-        client.process(node)
+        @client.stubs(:handler_for).with(@stanza_klass, @node).returns(handler)
+        @client.expects(:send).with(:handlethis, @stanza)
+        @client.process(@node)
       end
       
       should 'apply the correct handler when the stanza is recognised as a couple of different things' do
-        node = mock('node')
-        klass = mock('Stanza class')
-        stanza = mock('Stanza')
-        klass.stubs(:new).returns(stanza)
-        
         another_klass = mock('Stanza class')
         another_stanza = mock('Stanza')
         another_klass.stubs(:new).returns(another_stanza)
-        
-        client = Bersalis::Client.new(@connection)
-        client.stubs(:callback_for).returns(nil)
-        client.stubs(:stanza_classes_for).with(node).returns([another_klass, klass])
-        
+        @client.stubs(:stanza_classes_for).with(@node).returns([another_klass, @stanza_klass])
         handler = {:method => :handlethis}
-        client.stubs(:handler_for).with(another_klass, node).returns(nil)
-        client.stubs(:handler_for).with(klass, node).returns(handler)
-        
-        client.expects(:send).with(:handlethis, stanza)
-        
-        client.process(node)
+        @client.stubs(:handler_for).with(another_klass, @node).returns(nil)
+        @client.stubs(:handler_for).with(@stanza_klass, @node).returns(handler)
+        @client.expects(:send).with(:handlethis, @stanza)
+        @client.expects(:send).with(:handlethis, another_stanza).never
+        @client.process(@node)
       end
     end
 
     context 'write' do
       setup do
+        @connection = mock('Connection')
         @connection.stubs(:send_data)
       end
       
       should 'convert the stanza to xml' do
         stanza = mock('Stanza')
         stanza.expects(:to_xml)
-        client = Bersalis::Client.new(@connection)
+        client = Bersalis::Client.new
+        client.connection = @connection
         client.write(stanza)
       end
       
@@ -172,14 +164,15 @@ class ClientTest < Test::Unit::TestCase
         data = '<bar />'
         stanza.expects(:to_xml).returns(data)
         @connection.expects(:send_data).with(data)
-        client = Bersalis::Client.new(@connection)
+        client = Bersalis::Client.new
+        client.connection = @connection
         client.write(stanza)
       end
     end
     
     context 'write_iq' do
       setup do
-        @client = Bersalis::Client.new(@connection)
+        @client = Bersalis::Client.new
         @client.stubs(:write)
       end
       
@@ -212,13 +205,13 @@ class ClientTest < Test::Unit::TestCase
       
       should 'return a stanza class if node is recognised' do
         @node.expects(:at).with(@opts[:path], @opts[:namespaces]).returns(true)
-        client = Bersalis::Client.new(@connection)
+        client = Bersalis::Client.new
         assert_equal client.send(:stanza_classes_for, @node), [@klass]
       end
       
-      should 'return nothing if the node is unrecognised' do
+      should 'return empty if the node is unrecognised' do
         @node.expects(:at).with(@opts[:path], @opts[:namespaces]).returns(nil)
-        client = Bersalis::Client.new(@connection)
+        client = Bersalis::Client.new
         assert_equal client.send(:stanza_classes_for, @node), []
       end
     end
@@ -232,7 +225,7 @@ class ClientTest < Test::Unit::TestCase
       
       should 'return a handler when recognised' do
         Bersalis::Client::HANDLERS.expects(:select).returns([@opts])
-        client = Bersalis::Client.new(@connection)
+        client = Bersalis::Client.new
         assert_equal client.send(:handler_for, @klass, @node), @opts
       end
       
@@ -240,14 +233,14 @@ class ClientTest < Test::Unit::TestCase
         @opts[:filter] = '/nothing/to/see/here'
         @node.expects(:at).with(@opts[:filter], {}).returns(nil)
         Bersalis::Client::HANDLERS.expects(:select).returns([@opts])
-        client = Bersalis::Client.new(@connection)
+        client = Bersalis::Client.new
         assert_equal client.send(:handler_for, @klass, @node), nil
       end
     end
     
     context 'callback_for' do
       setup do
-        @client = Bersalis::Client.new(@connection)
+        @client = Bersalis::Client.new
         @iq_klass = mock('An IQ class')
         @iq = mock('IQ')
         @iq.stubs(:class).returns(@iq_klass)

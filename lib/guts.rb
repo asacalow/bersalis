@@ -60,7 +60,8 @@ module Bersalis
     attr_accessor :client, :parser
   
     def initialize(client)
-      self.client = client.new(self)
+      self.client = client
+      client.connection = self
     end
   
     def post_init
@@ -95,16 +96,11 @@ module Bersalis
       HANDLERS << options
     end
     
-    def self.run
-      self.connect
-    end
-  
-    def self.connect
+    def connect
       EM.connect '127.0.0.1', 5222, Connection, self
     end
   
-    def initialize(connection)
-      self.connection = connection
+    def initialize
       self.iq_callbacks = {}
     end
   
