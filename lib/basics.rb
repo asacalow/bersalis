@@ -10,9 +10,9 @@ module Bersalis
     
     def initialize(opts={}, *args)
       super(*args)
-      @jid = JID.new(opts[:jid]) if opts[:jid]
+      @jid = JID.new(opts[:jid])
       @password = opts[:password]
-      @host = opts[:host] || (@jid && @jid.host)
+      @host = opts[:host] || @jid.host
     end
     
     def choose_auth_mechanism(features)
@@ -41,13 +41,11 @@ module Bersalis
     end
 
     def ready_to_bind(features)
-      puts "Ready to bind…"
       bind = Bind.create(:type => 'get', :jid => @jid.bare_jid, :resource => @jid.resource)
       write bind
     end
 
     def bound(bind)
-      puts "…bound!"
       write Session.create(:type => 'set')
     end
 
