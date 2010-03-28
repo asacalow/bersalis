@@ -1,15 +1,19 @@
 module Bersalis
   class BasicClient < Client
-    attr_accessor :jid, :username, :password
-    
-    handle Features,                  :choose_auth_mechanism,          :filter => '/features/sasl:mechanisms', :filter_ns => {'sasl' => 'urn:ietf:params:xml:ns:xmpp-sasl'}
-    #handle Features,                  :ready_to_authenticate,     :filter => '/features/auth:auth', :filter_ns => {'auth' => 'http://jabber.org/features/iq-auth'}
+    handle Features,                  :choose_auth_mechanism,     :filter => '/features/sasl:mechanisms', :filter_ns => {'sasl' => 'urn:ietf:params:xml:ns:xmpp-sasl'}
     handle StartTLSProceed,           :proceed_with_tls
     handle DigestAuthChallenge,       :auth_challenge
     handle AuthenticationSuccessful,  :authentication_successful
     handle Features,                  :ready_to_bind,             :filter => '/features/bind:bind', :filter_ns => {'bind' => 'urn:ietf:params:xml:ns:xmpp-bind'}
     handle Bind,                      :bound
     handle Session,                   :session_started
+    
+    def initialize(opts, *args)
+      super(*args)
+      @jid = JID.new(opts[:jid])
+      @password = opts[:password]
+      @host = opts[:host] || @jid.host
+    end
     
     def choose_auth_mechanism(features)
       if features.tls_required?
@@ -24,17 +28,11 @@ module Bersalis
       self.start_tls
       self.restart
     end
-
-    def ready_to_authenticate(features)
-      auth = DigestAuth.create
-      #auth.set_credentials(:jid => 'jimjam@alakazam.local', :username => 'jimjam', :password => 'password')
-      write auth
-    end
     
     def auth_challenge(challenge)
       challenge.decode_challenge
       response = DigestAuthChallengeResponse.create
-      response.set_credentials(:username => 'jimjam', :password => 'password', :nonce => challenge.nonce, :realm => challenge.realm, :domain => 'alakazam.local')
+      response.set_credentials(:username => @jid.username, :password => @password, :nonce => challenge.nonce, :realm => challenge.realm, :domain => @host)
       write response
     end
 
@@ -44,7 +42,7 @@ module Bersalis
 
     def ready_to_bind(features)
       puts "Ready to bind…"
-      bind = Bind.create(:type => 'get', :jid => 'jimjam@alakazam.local', :resource => 'trousers')
+      bind = Bind.create(:type => 'get', :jid => @jid.bare_jid, :resource => @jid.resource)
       write bind
     end
 
@@ -55,6 +53,26 @@ module Bersalis
 
     def session_started(session)
       write Presence.create
+    end
+  end
+  
+  class JID
+    attr_accessor :username, :host, :resource
+    
+    PATTERN = /^(?:([^@]*)@)??([^@\/]*)(?:\/(.*?))?$/.freeze
+    
+    def initialize(jid_string='')
+      @username,@host,@resource = jid_string.scan(PATTERN).first
+    end
+    
+    def to_s
+      return host                                   if @username.nil? && @resource.nil?
+      return "#{@username}@#{@host}"                if @resource.nil?
+      return "#{@username}@#{@host}/#{@resource}"
+    end
+    
+    def bare_jid
+      "#{@username}@#{@host}"
     end
   end
 end

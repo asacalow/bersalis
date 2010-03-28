@@ -5,5 +5,6 @@ trap(:SIGINT)   { EM.stop }
 trap(:SIGTERM)  { EM.stop }
 
 EM.run do
-  Bersalis::BasicClient.run
+  client = Bersalis::BasicClient.new(:jid => 'jimjam@alakazam.local', :password => 'password')
+  client.connect
 end
