@@ -20,7 +20,9 @@ module Bersalis
   end
 end
 
-require 'guts'
+require 'guts/client'
+require 'guts/connection'
+require 'guts/document'
 require 'stanzas'
 require 'stanzas/core'
 require 'stanzas/auth'

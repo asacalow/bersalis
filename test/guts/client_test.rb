@@ -1,54 +1,4 @@
-require File.join(File.dirname(__FILE__), 'test_helper')
-
-class ConnectionTest < Test::Unit::TestCase
-  context 'Connection' do
-    setup do
-      @client = Bersalis::Client.new
-      @client.stubs(:start)
-    end
-    
-    context 'initialising' do
-      should 'wire together the connection and the given client' do
-        connection = Bersalis::Connection.new('dummysig', @client)
-        assert_equal @client.connection, connection
-        assert_equal connection.client, @client
-      end
-      
-      should 'start the client after the connection is initialised' do
-        @client.expects(:start)
-        connection = Bersalis::Connection.new('dummysig', @client)
-      end
-    end
-
-    context 'starting' do
-      should 'instantiate a parser' do
-        Nokogiri::XML::SAX::PushParser.expects(:new)
-        connection = Bersalis::Connection.new('dummysig', @client)
-        connection.start
-      end
-    end
-    
-    context 'receiving data' do
-      setup do
-        @parser = mock('Parser')
-        @connection = Bersalis::Connection.new('dummysig', @client)
-        @connection.parser = @parser
-        @parser.stubs('<<')
-      end
-      
-      should 'hand it off to the parser' do
-        data = '<foo />'
-        @parser.expects('<<').with(data)
-        @connection.receive_data(data)
-      end
-      
-      should 'log the incoming data' do
-        Bersalis.expects(:debug)
-        @connection.receive_data('foo')
-      end
-    end
-  end
-end
+require File.join(File.dirname(__FILE__), '..', 'test_helper')
 
 class ClientTest < Test::Unit::TestCase
   context 'Client' do
@@ -289,34 +239,6 @@ class ClientTest < Test::Unit::TestCase
         @iq.expects(:succeed).with(incoming_iq)
         @client.send(:callback_for, node)
       end
-    end
-  end
-end
-
-class DocumentTest < Test::Unit::TestCase
-  context 'Document' do
-    setup do
-      @client = mock('Client')
-      @parser = Nokogiri::XML::SAX::PushParser.new(Bersalis::Document.new(@client))
-    end
-  
-    should 'process a complete stanza' do
-      @client.expects(:process)
-      @parser << "<foo bar=\"foobar\"><baz /></foo>"
-    end
-  
-    should 'not process an incomplete stanza' do
-      @client.expects(:process).never
-      @parser << "<foo bar=\"foobar\"><baz />"
-    end
-    
-    should 'create a node from the parser input' do
-      @client.stubs(:process).with do |node|
-        assert_kind_of Bersalis::Node, node
-        assert_equal node.name, 'foo'
-        true
-      end
-      @parser << "<foo bar=\"foobar\"><baz /></foo>"
     end
   end
 end
