@@ -18,12 +18,16 @@ module Bersalis
   def self.debug(msg)
     logger.log(Logger::DEBUG, msg)
   end
+  
+  KNOWN_STANZAS = {}
 end
 
 require 'guts/client'
 require 'guts/connection'
 require 'guts/document'
-require 'stanzas'
+require 'guts/node'
+require 'stanzas/base/read_only_stanza'
+require 'stanzas/base/stanza'
 require 'stanzas/core'
 require 'stanzas/auth'
 require 'stanzas/session'

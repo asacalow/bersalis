@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'test_helper')
+require File.join(File.dirname(__FILE__), '..', '..', 'test_helper')
 
 class ReadOnlyStanzaTest < Test::Unit::TestCase
   should 'register a stanza type in the appropriate format' do
@@ -67,67 +67,6 @@ class ReadOnlyStanzaTest < Test::Unit::TestCase
       stanza = DummyStanza.new(@node)
       @bar.content = 'bazzzz'
       assert_equal @bar.content, stanza.bar
-    end
-  end
-end
-
-class StanzaTest < Test::Unit::TestCase
-  context 'self.create' do
-    setup do
-      class DummyStanza < Bersalis::Stanza; NODE_NAME='foo'; end
-    end
-    
-    should 'instantiate a node' do
-      stanza = DummyStanza.create
-      assert_kind_of Bersalis::Node, stanza.node
-    end
-    
-    should 'set up the instance' do
-      DummyStanza.expects(:setup)
-      DummyStanza.create
-    end
-  end
-  
-  context 'to_xml' do
-    should 'return the xml representation' do
-      node = Bersalis::Node.new('foo')
-      bar = node << Bersalis::Node.new('bar', node.document)
-      stanza = Bersalis::Stanza.new(node)
-      assert_equal(node.to_xml, stanza.to_xml)
-    end
-  end
-  
-  context 'reply!' do
-    should 'swap the to and the from' do
-      node = Bersalis::Node.new('foo')
-      node.finish_up
-      stanza = Bersalis::Stanza.new(node)
-      to = stanza.to = 'bob@example.com'
-      from = stanza.from = 'jim@example.com'
-      stanza.reply!
-      assert_equal stanza.from, to
-      assert_equal stanza.to, from
-    end
-  end
-end
-
-class NodeTest < Test::Unit::TestCase
-  context 'Node' do
-    context 'finish_up' do
-      should 'set itself as the root node for its document' do
-        node = Bersalis::Node.new('foo')
-        node.document.expects(:root=).with(node)
-        node.finish_up
-      end
-    end
-    
-    context 'at' do
-      should 'hand off to the node document' do
-        node = Bersalis::Node.new('foo')
-        path = '/this/is/a/path'
-        node.document.expects(:at).with(path)
-        node.at(path)
-      end
     end
   end
 end

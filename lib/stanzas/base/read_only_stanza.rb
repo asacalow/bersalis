@@ -1,9 +1,4 @@
-# the abstract Stanza classes
-# a Stanza is basically a wrapper around a Nokogiri node
-
 module Bersalis
-  KNOWN_STANZAS = {}
-  
   class ReadOnlyStanza
     attr_accessor :node
   
@@ -56,49 +51,5 @@ module Bersalis
   
     attribute :to,    :path => '/*'
     attribute :from,  :path => '/*'
-  end
-
-  class Stanza < ReadOnlyStanza
-    def self.create(attributes={})
-      node = Node.new(self::NODE_NAME)
-      node.finish_up
-      self.setup(node)
-      return self.new(node, attributes)
-    end
-
-    # override this method and build your stanza here like so:
-    # def self.setup(node)
-    #     node = super(node)
-    #     Nokogiri::XML::Builder.with(node) do |xml|
-    #       # do cool stuff
-    #     end
-    #     # and now return the node from which child classes of this stanza build
-    #   end
-    def self.setup(node)
-      node
-    end
-    
-    def to_xml(*args)
-      self.node.to_xml(*args)
-    end
-    
-    def reply!
-      self.to, self.from = self.from, self.to
-    end
-  end
-  
-  class Node < Nokogiri::XML::Node
-    def self.new(name, doc=Nokogiri::XML::Document.new)
-      super(name, doc)
-    end
-    
-    # we do this so we can use the at method below to search the entire node
-    def finish_up
-      self.document.root = self
-    end
-    
-    def at(*args)
-      self.document.at(*args)
-    end
   end
 end
