@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.date = %q{2010-03-30}
   s.email = %q{mothership@asacalow.co.uk}
   s.extra_rdoc_files = ["README"]
-  s.files = ["README", "test", "lib/basics.rb", "lib/bersalis.rb", "lib/guts", "lib/guts/client.rb", "lib/guts/connection.rb", "lib/guts/document.rb", "lib/guts/node.rb", "lib/stanzas", "lib/stanzas/auth.rb", "lib/stanzas/base", "lib/stanzas/base/read_only_stanza.rb", "lib/stanzas/base/stanza.rb", "lib/stanzas/core.rb", "lib/stanzas/disco.rb", "lib/stanzas/roster.rb", "lib/stanzas/session.rb"]
+  s.files = ["README", "test", "lib/bersalis", "lib/bersalis/basics.rb", "lib/bersalis/client.rb", "lib/bersalis/connection.rb", "lib/bersalis/document.rb", "lib/bersalis/node.rb", "lib/bersalis/stanzas", "lib/bersalis/stanzas/auth.rb", "lib/bersalis/stanzas/base", "lib/bersalis/stanzas/base/read_only_stanza.rb", "lib/bersalis/stanzas/base/stanza.rb", "lib/bersalis/stanzas/core.rb", "lib/bersalis/stanzas/disco.rb", "lib/bersalis/stanzas/roster.rb", "lib/bersalis/stanzas/session.rb", "lib/bersalis.rb"]
   s.homepage = %q{http://github.com/asacalow/bersalis}
   s.rdoc_options = ["--main", "README"]
   s.require_paths = ["lib"]
