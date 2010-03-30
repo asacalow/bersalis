@@ -1,6 +1,5 @@
 require 'logger'
 require 'digest'
-require 'rubygems'
 require 'eventmachine'
 require 'nokogiri'
 
