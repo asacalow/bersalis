@@ -4,7 +4,7 @@ class ReadOnlyStanzaTest < Test::Unit::TestCase
   should 'register a stanza type in the appropriate format' do
     class DummyStanza < Bersalis::ReadOnlyStanza; end
     path = '/some/identifying/foo:path'
-    namespaces = {:foo => 'http://foo.com'}
+    namespaces = {'foo' => 'http://foo.com'}
     DummyStanza.register(path, namespaces)
     registration = Bersalis::KNOWN_STANZAS[DummyStanza]
     

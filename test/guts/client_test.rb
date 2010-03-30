@@ -156,7 +156,7 @@ class ClientTest < Test::Unit::TestCase
         @klass = mock('Stanza class')
         @opts = {
           :path => '/a/test/foo:path', 
-          :namespaces => {:foo => 'http://foo.com'}
+          :namespaces => {'foo' => 'http://foo.com'}
         }
         Bersalis::KNOWN_STANZAS[@klass] = @opts
         @node = mock('Node')
