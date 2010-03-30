@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', '..', 'test_helper')
+require 'test_helper'
 
 class ReadOnlyStanzaTest < Test::Unit::TestCase
   should 'register a stanza type in the appropriate format' do
