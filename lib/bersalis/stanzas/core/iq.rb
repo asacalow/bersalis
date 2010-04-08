@@ -20,19 +20,4 @@ module Bersalis
       @iq_id += 1
     end
   end
-  
-  class Presence < Stanza
-    NODE_NAME = 'presence'
-  
-    register '/presence'
-  end
-  
-  class Message < Stanza
-    NODE_NAME = 'message'
-    
-    register '/message'
-    
-    attribute :type, :path => '/message'
-    content   :body, :path => '/message'
-  end
 end
