@@ -1,5 +1,8 @@
 module Bersalis
   class BasicClient < Client
+    START_STREAM = "<stream:stream xmlns=\"jabber:client\" xmlns:stream=\"http://etherx.jabber.org/streams\" version=\"1.0\">"
+    PORT_NUMBER = 5222
+    
     handle Features,                  :choose_auth_mechanism,     :filter => '/features/sasl:mechanisms', :filter_ns => {'sasl' => 'urn:ietf:params:xml:ns:xmpp-sasl'}
     handle StartTLSProceed,           :proceed_with_tls
     handle DigestAuthChallenge,       :auth_challenge

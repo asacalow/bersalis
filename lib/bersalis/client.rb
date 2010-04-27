@@ -1,19 +1,19 @@
 module Bersalis
   class Client
-    HANDLERS = []
-  
-    START_STREAM = "<stream:stream xmlns=\"jabber:client\" xmlns:stream=\"http://etherx.jabber.org/streams\" version=\"1.0\">"
-  
     attr_accessor :connection, :iq_callbacks
+    
+    def self.HANDLERS
+      @handlers ||= []
+    end
   
     def self.handle(klass, method, options={})
       options[:method] = method
       options[:class] = klass
-      HANDLERS << options
+      self.HANDLERS << options
     end
     
     def connect
-      EM.connect '127.0.0.1', 5222, Connection, self
+      EM.connect '127.0.0.1', self.class::PORT_NUMBER, Connection, self
     end
   
     def initialize
@@ -22,7 +22,7 @@ module Bersalis
   
     def start
       self.connection.start
-      self.write Client::START_STREAM
+      self.write self.class::START_STREAM
     end
     
     def start_tls
@@ -73,7 +73,7 @@ module Bersalis
     end
     
     def handler_for(klass, node)
-      possibles = HANDLERS.select{|h| klass == h[:class]}
+      possibles = self.class.HANDLERS.select{|h| klass == h[:class]}
       # now filter 'em
       opts = nil
       possibles.each do |options|
