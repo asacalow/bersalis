@@ -4,7 +4,8 @@ class DocumentTest < Test::Unit::TestCase
   context 'Document' do
     setup do
       @client = mock('Client')
-      @parser = Nokogiri::XML::SAX::PushParser.new(Bersalis::Document.new(@client))
+      @document = Bersalis::Document.new(@client)
+      @parser = Nokogiri::XML::SAX::PushParser.new(@document)
     end
   
     should 'process a complete stanza' do
@@ -24,6 +25,11 @@ class DocumentTest < Test::Unit::TestCase
         true
       end
       @parser << "<foo bar=\"foobar\"><baz /></foo>"
+    end
+    
+    should 'process an unclosed stream node immediately' do
+      @document.expects(:process_now).returns(nil)
+      @parser << "<stream:stream xmlns:stream=\"http://etherx.jabber.org/streams\">"
     end
   end
 end

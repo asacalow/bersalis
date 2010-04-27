@@ -7,19 +7,24 @@ module Bersalis
     end
   
     def start_element_namespace(name, attrs = [], prefix = nil, uri = nil, ns = [])
-      return if name == 'stream' # this tag only gets closed when the connection is closed so we want to ignore this for now
-      # TODO: Create a Stream object which captures some of this stuff.
+      node_options = {
+        :name => name, 
+        :attrs => attrs, 
+        :prefix => prefix, 
+        :uri => uri, 
+        :ns => ns
+      }
+      
+      if is_stream?(node_options) 
+        process_now(node_options)
+        return
+      end
     
       # if we're already building a stanza then assign the found node to the same xml document as it
       doc = stanza_building_in_progress? ? @current.document : Nokogiri::XML::Document.new
     
       # create a Nokogiri node from what we know…
-      node = Node.new(name, doc)
-      attrs.each {|a| node[a.localname] = a.value}
-      ns.each do |ns|
-        prefix, uri = ns
-        node.add_namespace(prefix,uri)
-      end
+      node = create_node(doc, node_options)
       @current << node if @current # down the tree
       @current = node
     end
@@ -42,6 +47,22 @@ module Bersalis
     end
   
     private
+    
+    def create_node(doc, opts)
+      name = opts[:name]
+      attrs = opts[:attrs]
+      prefix = opts[:prefix]
+      uri = opts[:uri]
+      ns = opts[:ns]
+      node = Node.new(name, doc)
+      attrs.each {|a| node[a.localname] = a.value}
+      ns.each do |ns|
+        prefix, uri = ns
+        node.add_namespace(prefix,uri)
+      end
+      
+      node
+    end
   
     def process(node)
       # we set this so we can use xpath across the whole node – see the method
@@ -49,6 +70,15 @@ module Bersalis
       @current = nil # reset our pointer
     
       self.receiver.process(node)
+    end
+    
+    def process_now(opts)
+      node = create_node(Nokogiri::XML::Document.new, opts)
+      process(node)
+    end
+    
+    def is_stream?(opts)
+      return (opts[:name] == 'stream') && (opts[:prefix] == 'stream')
     end
   
     def stanza_building_in_progress?
