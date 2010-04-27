@@ -42,7 +42,7 @@ class Test::Unit::TestCase
       client = Bersalis::Client.new
       document = Nokogiri::XML::Document.parse(stanza)
       instance = test_class.new(document.root)
-      assert_equal instance.send("#{attribute_name}"), value
+      assert_equal value, instance.send("#{attribute_name}")
     end
     
     should "have a valid setter '#{attribute_name}'" do
@@ -51,7 +51,7 @@ class Test::Unit::TestCase
       instance = test_class.new(document.root)
       value = '1234thisisatestvalueabcd'
       instance.send("#{attribute_name}=", value)
-      assert_equal instance.send("#{attribute_name}"), value
+      assert_equal value, instance.send("#{attribute_name}")
     end
   end
   
