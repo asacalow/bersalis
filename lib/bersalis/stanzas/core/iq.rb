@@ -19,5 +19,10 @@ module Bersalis
       @iq_id ||= 0
       @iq_id += 1
     end
+    
+    def reply!
+      super
+      self.type = 'result'
+    end
   end
 end

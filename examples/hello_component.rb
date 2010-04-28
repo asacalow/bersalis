@@ -8,6 +8,6 @@ trap(:SIGINT)   { EM.stop }
 trap(:SIGTERM)  { EM.stop }
 
 EM.run do
-  client = BasicComponent.new
+  client = BasicComponent.new(:secret => 'b0nnggg!')
   client.connect
 end
