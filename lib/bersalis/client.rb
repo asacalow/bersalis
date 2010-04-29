@@ -2,14 +2,12 @@ module Bersalis
   class Client
     attr_accessor :connection, :iq_callbacks
     
-    def self.HANDLERS
-      @handlers ||= []
-    end
+    HANDLERS = []
   
     def self.handle(klass, method, options={})
       options[:method] = method
       options[:class] = klass
-      self.HANDLERS << options
+      self::HANDLERS << options
     end
     
     def connect
@@ -73,7 +71,7 @@ module Bersalis
     end
     
     def handler_for(klass, node)
-      possibles = self.class.HANDLERS.select{|h| klass == h[:class]}
+      possibles = self.class::HANDLERS.select{|h| klass == h[:class]}
       # now filter 'em
       opts = nil
       possibles.each do |options|
