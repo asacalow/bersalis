@@ -1,6 +1,5 @@
 module Bersalis
   class BasicClient < Client
-    START_STREAM = "<stream:stream xmlns=\"jabber:client\" xmlns:stream=\"http://etherx.jabber.org/streams\" version=\"1.0\">"
     PORT_NUMBER = 5222
     
     attr_accessor :jid, :password, :host
@@ -12,6 +11,10 @@ module Bersalis
     handle Features,                  :ready_to_bind,             :filter => '/features/bind:bind', :filter_ns => {'bind' => 'urn:ietf:params:xml:ns:xmpp-bind'}
     handle Bind,                      :bound
     handle Session,                   :session_started
+    
+    def start_stream
+      "<stream:stream xmlns=\"jabber:client\" xmlns:stream=\"http://etherx.jabber.org/streams\" version=\"1.0\">"
+    end
     
     def initialize(opts={}, *args)
       super(*args)

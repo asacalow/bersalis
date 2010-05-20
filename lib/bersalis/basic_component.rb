@@ -1,6 +1,5 @@
 module Bersalis
   class BasicComponent < Client
-    START_STREAM = "<stream:stream to=\"trousers.alakazam.local\" xmlns=\"jabber:component:accept\" xmlns:stream=\"http://etherx.jabber.org/streams\">"
     PORT_NUMBER = 5275
     
     handle ComponentAccept, :handle_component_accept
@@ -9,6 +8,11 @@ module Bersalis
     def initialize(opts={}, *args)
       super(*args)
       @secret = opts[:secret]
+      @host = opts[:host]
+    end
+    
+    def start_stream
+      "<stream:stream to=\"#{@host}\" xmlns=\"jabber:component:accept\" xmlns:stream=\"http://etherx.jabber.org/streams\">"
     end
     
     def handle_component_accept(component_accept)

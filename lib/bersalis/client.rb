@@ -20,7 +20,7 @@ module Bersalis
   
     def start
       self.connection.start
-      self.write self.class::START_STREAM
+      self.write start_stream
     end
     
     def start_tls
