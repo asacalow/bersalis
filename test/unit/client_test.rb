@@ -6,9 +6,9 @@ class ClientTest < Test::Unit::TestCase
       setup do
         @connection = mock('Connection')
         @connection.stubs(:start)
-        Bersalis::Client::START_STREAM = '<foo />'
         @client = Bersalis::Client.new
         @client.connection = @connection
+        @client.stubs(:start_stream).returns('<foo />')
         @client.stubs(:write)
       end
 
@@ -42,7 +42,7 @@ class ClientTest < Test::Unit::TestCase
         klass = 'Foo'
         method = 'bar'
         options = {}
-        Bersalis::Client.HANDLERS.expects(:<<)
+        Bersalis::Client::HANDLERS.expects(:<<)
         Bersalis::Client.handle(klass,method,options)
       end
     end
@@ -180,7 +180,7 @@ class ClientTest < Test::Unit::TestCase
       end
       
       should 'return a handler when recognised' do
-        Bersalis::Client.HANDLERS.expects(:select).returns([@opts])
+        Bersalis::Client::HANDLERS.expects(:select).returns([@opts])
         client = Bersalis::Client.new
         assert_equal client.send(:handler_for, @klass, @node), @opts
       end
@@ -188,7 +188,7 @@ class ClientTest < Test::Unit::TestCase
       should 'not return a recognised handler where a filter has been applied' do
         @opts[:filter] = '/nothing/to/see/here'
         @node.expects(:at).with(@opts[:filter], {}).returns(nil)
-        Bersalis::Client.HANDLERS.expects(:select).returns([@opts])
+        Bersalis::Client::HANDLERS.expects(:select).returns([@opts])
         client = Bersalis::Client.new
         assert_equal client.send(:handler_for, @klass, @node), nil
       end
