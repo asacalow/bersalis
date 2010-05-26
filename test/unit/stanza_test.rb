@@ -1,11 +1,9 @@
 require 'test_helper'
 
+class DummyStanza < Bersalis::Stanza; NODE_NAME='foo'; end
+
 class StanzaTest < Test::Unit::TestCase
   context 'self.create' do
-    setup do
-      class DummyStanza < Bersalis::Stanza; NODE_NAME='foo'; end
-    end
-    
     should 'instantiate a node' do
       stanza = DummyStanza.create
       assert_kind_of Bersalis::Node, stanza.node
