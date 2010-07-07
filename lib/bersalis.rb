@@ -7,15 +7,19 @@ module Bersalis
   VERSION = '0.2'
   
   def self.logger
-    @logger ||= Logger.new($stdout)
+    unless @logger
+      @logger = Logger.new($stdout)
+      @logger.level = Logger::INFO
+    end
+    @logger
   end
   
   def self.info(msg)
-    logger.log(Logger::INFO, msg)
+    logger.info(msg)
   end
 
   def self.debug(msg)
-    logger.log(Logger::DEBUG, msg)
+    logger.debug(msg)
   end
   
   KNOWN_STANZAS = {}
