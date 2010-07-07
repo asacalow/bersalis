@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class HandshakeTest < Test::Unit::TestCase
+class TestHandshake < Test::Unit::TestCase
   context 'Bersalis::Handshake' do
     test_stanza '<handshake>1234abcd</handshake>'
     should_have 'auth_hash', '1234abcd'

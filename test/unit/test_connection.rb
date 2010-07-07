@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class ConnectionTest < Test::Unit::TestCase
+class TestConnection < Test::Unit::TestCase
   context 'Connection' do
     setup do
       @client = Bersalis::Client.new

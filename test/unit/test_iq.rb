@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class IqTest < Test::Unit::TestCase
+class TestIq < Test::Unit::TestCase
   context 'Bersalis::IQ' do
     test_stanza "<iq id=\"123\" to=\"bob@example.com\" from=\"jim@example.com\" type=\"get\"><foo /></iq>"
     should_have 'id', '123'

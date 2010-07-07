@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class DocumentTest < Test::Unit::TestCase
+class TestDocument < Test::Unit::TestCase
   context 'Document' do
     setup do
       @client = mock('Client')

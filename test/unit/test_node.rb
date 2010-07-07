@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class NodeTest < Test::Unit::TestCase
+class TestNode < Test::Unit::TestCase
   context 'Node' do
     context 'finish_up' do
       should 'set itself as the root node for its document' do

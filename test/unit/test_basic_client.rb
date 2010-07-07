@@ -1,7 +1,7 @@
 require 'test_helper'
 include Bersalis
 
-class BasicClientTest < Test::Unit::TestCase
+class TestBasicClient < Test::Unit::TestCase
   testing BasicClient
   
   should_handle stanza_fixture(:auth_features),           :choose_auth_mechanism

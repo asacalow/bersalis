@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class ReadOnlyStanzaTest < Test::Unit::TestCase
+class TestReadOnlyStanza < Test::Unit::TestCase
   should 'register a stanza type in the appropriate format' do
     class DummyStanza < Bersalis::ReadOnlyStanza; end
     path = '/some/identifying/foo:path'

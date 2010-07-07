@@ -1,7 +1,7 @@
 require 'test_helper'
 include Bersalis
 
-class JIDTest < Test::Unit::TestCase
+class TestJID < Test::Unit::TestCase
   context 'new' do
     should 'separate out the username, host and resource correctly' do
       j = JID.new('bob@example.com/trousers')

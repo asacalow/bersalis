@@ -1,7 +1,7 @@
 require 'test_helper'
 include Bersalis
 
-class BasicComponentTest < Test::Unit::TestCase
+class TestBasicComponent < Test::Unit::TestCase
   context 'BasicComponent' do
     testing BasicComponent
     

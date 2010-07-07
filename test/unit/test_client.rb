@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class ClientTest < Test::Unit::TestCase
+class TestClient < Test::Unit::TestCase
   context 'Client' do
     context 'starting' do
       setup do

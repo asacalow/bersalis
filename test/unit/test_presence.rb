@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class PresenceTest < Test::Unit::TestCase
+class TestPresence < Test::Unit::TestCase
   context 'Bersalis::Presence' do
     test_stanza "<presence />"
   end
