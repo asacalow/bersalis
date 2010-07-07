@@ -13,7 +13,7 @@ module Bersalis
     handle Session,                   :session_started
     
     def start_stream
-      "<stream:stream xmlns=\"jabber:client\" xmlns:stream=\"http://etherx.jabber.org/streams\" version=\"1.0\">"
+      "<?xml version=\"1.0\"?>\n<stream:stream xmlns=\"jabber:client\" xmlns:stream=\"http://etherx.jabber.org/streams\" to=\"#{host}\" version=\"1.0\">"
     end
     
     def initialize(opts={}, *args)
